@@ -23,8 +23,9 @@ sf <- spTransform(sf, CRS("+proj=longlat +datum=WGS84"))
 
 m <- leaflet(sf) %>%
   addProviderTiles("CartoDB.Positron") %>%
-  addCircles(lng <- cri[cri$Category == "TREA",c("X")], lat = cri[cri$Category == "TREA",c("Y")]) %>%
-  setView(lng <- cri[cri$Category == "TREA",c("X")][1], lat = cri[cri$Category == "TREA",c("Y")][1],zoom = 12)
+  addPolygons() %>%
+  addMarkers(lng <- cri[cri$Category == "GAMBLING",c("X")], lat = cri[cri$Category == "GAMBLING",c("Y")]) %>%
+  setView(lng <- cri[cri$Category == "GAMBLING",c("X")][1], lat = cri[cri$Category == "GAMBLING",c("Y")][1],zoom = 12)
 
 
 #================ Prepare for Points-in-Polygon operation
@@ -32,7 +33,7 @@ m <- leaflet(sf) %>%
 cri.cord <- data.frame(X = cri$X, Y = cri$Y)
 cri.cord <- SpatialPoints(cri.cord)
 # coordinates(cri.cord) <- c("longitude","latitude")
-cri.cord <- SpatialPointsDataFrame(cri.cord)
+# cri.cord <- SpatialPointsDataFrame(cri.cord)
 proj4string(cri.cord) <- proj4string(sf)
 
 sf.poly <- sf@polygons
@@ -48,7 +49,7 @@ getPostcode <- function(SP_unit,row.n){
   }
 }
 
-total <- nrow(cri)
+
 
 #================ Find postcode in train dataset through Points-in-Polygon operation
 #================ A progress bar has been placed here for visual idication of current progress
@@ -56,20 +57,18 @@ total <- nrow(cri)
 
 train_postcode = c()
 
+total <- nrow(cri)
+
 pb <- winProgressBar(title="Example progress bar", label="0% done", min=0, max=total, initial=0)
 
 for(i in length(train_postcode)+1:total){
-
   train_postcode[i] <- if(!is.null(getPostcode(cri.cord,i))){
     getPostcode(cri.cord,i)
   } else {
     ""
   }
-  
   info <- sprintf("%f%% done", (i/total)*100)
   setWinProgressBar(pb, i/total*100, label=info)
-  
-  
 }
 
 close(pb)
